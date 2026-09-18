@@ -8,3 +8,4 @@ passlib>=1.7.4
 python-multipart>=0.0.9
 requests>=2.31.0
 email-validator
+psycopg[binary]
