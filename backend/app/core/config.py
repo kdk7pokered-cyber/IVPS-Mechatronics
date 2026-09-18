@@ -39,6 +39,6 @@ class Settings(BaseModel):
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:8000")
     
     # Uploads directory
-    UPLOAD_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+    UPLOAD_DIR: str = "/tmp/ivps_uploads"
 
 settings = Settings()
