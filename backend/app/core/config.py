@@ -1,6 +1,14 @@
 import os
 from pydantic import BaseModel
 
+def _get_database_url() -> str:
+    db_url = os.getenv("DATABASE_URL", "").strip()
+    if db_url:
+        return db_url
+    if os.getenv("VERCEL"):
+        return "sqlite:////tmp/ivps_mechatronics.db"
+    return "sqlite:///./ivps_mechatronics.db"
+
 class Settings(BaseModel):
     PROJECT_NAME: str = "IVPS Mechatronics"
     API_V1_STR: str = "/api"
@@ -8,8 +16,8 @@ class Settings(BaseModel):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
-    # SQLite default out-of-the-box, fully switchable to PostgreSQL via DATABASE_URL
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./ivps_mechatronics.db")
+    # Neon PostgreSQL in production via DATABASE_URL; safe fallback for local/Vercel
+    DATABASE_URL: str = _get_database_url()
     
     # Default Platform Contact Unlock Fee in Indian Rupees (₹)
     DEFAULT_CONTACT_UNLOCK_FEE: float = float(os.getenv("DEFAULT_CONTACT_UNLOCK_FEE", "99.00"))

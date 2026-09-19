@@ -30,6 +30,12 @@ if DATABASE_URL.startswith("postgresql://"):
         "postgresql+psycopg://",
         1
     )
+elif DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql+psycopg://",
+        1
+    )
 
 
 # ============================================================
@@ -81,17 +87,24 @@ Base = declarative_base()
 
 def ensure_db_schema():
     """
-    SQLite-only compatibility migration.
-
-    This keeps the existing local SQLite database compatible
-    with the newer OAuth columns.
-
-    PostgreSQL does NOT use SQLite PRAGMA commands.
-    PostgreSQL schema creation should be handled separately.
+    Ensures database table schemas have all required columns.
+    - SQLite: Uses PRAGMA column inspection for local development.
+    - PostgreSQL: Uses PostgreSQL-native 'ALTER TABLE ... ADD COLUMN IF NOT EXISTS'.
+    Never executes SQLite PRAGMA statements against PostgreSQL.
     """
-
-    # Do nothing when using PostgreSQL
     if not DATABASE_URL.startswith("sqlite"):
+        # PostgreSQL-safe migration (no PRAGMAs)
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_user_id VARCHAR(100);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_provider_verified BOOLEAN DEFAULT FALSE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub VARCHAR(100);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_email VARCHAR(150);"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_google_verified BOOLEAN DEFAULT FALSE;"))
+                conn.commit()
+        except Exception:
+            pass
         return
 
     try:

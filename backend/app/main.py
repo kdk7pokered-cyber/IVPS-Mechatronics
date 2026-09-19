@@ -7,6 +7,8 @@ from fastapi.responses import FileResponse
 
 from app.core.config import settings
 from app.core.database import engine, Base, ensure_db_schema
+# Ensure all SQLAlchemy models are registered on Base.metadata before create_all
+import app.models.models
 from app.seed_data import seed
 from app.routers import (
     auth, machines, contact_unlock, payments, enquiries, wishlist, admin, dashboard
@@ -15,15 +17,21 @@ from app.routers import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure tables exist
-    Base.metadata.create_all(bind=engine)
-    ensure_db_schema()
+    try:
+        Base.metadata.create_all(bind=engine)
+        ensure_db_schema()
+    except Exception as e:
+        print(f"Database table initialization warning: {e}")
     # Auto-seed initial data
     try:
         seed()
     except Exception as e:
         print(f"Auto-seed notification: {e}")
     # Ensure upload directory exists
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    try:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    except Exception as e:
+        print(f"Upload directory warning: {e}")
     yield
 
 app = FastAPI(
@@ -42,9 +50,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount upload directory
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+# Mount upload directory safely (creates directory if writable, tolerates read-only deploy environments)
+try:
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    if os.path.isdir(settings.UPLOAD_DIR):
+        app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+except Exception as e:
+    print(f"Uploads static mount notification: {e}")
 
 # Include Routers under API V1
 app.include_router(auth.router, prefix=settings.API_V1_STR)

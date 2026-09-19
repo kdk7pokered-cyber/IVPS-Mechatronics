@@ -1,0 +1,31 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Uploads and temporary storage
+uploads/
+/tmp/
+*.log
+
+# Node dependencies and build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
