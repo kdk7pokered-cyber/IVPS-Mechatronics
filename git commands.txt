@@ -1,0 +1,13 @@
+ git commit -m "Initial commit"    
+npx plugins add vercel/vercel-plugin 
+ winget install --id Git.Git -e --source winget       
+git add .
+git config --global user.name "Pavaan S V"               
+git config --global user.email "kdk7pokered@gmail.com" 
+ git commit -m "Initial IVPS Mechatronics project"       
+ git branch -M main 
+git remote add origin https://github.com/YOUR_USERNAME/ivps-mechatronics.git
+ git pull origin main --allow-unrelated-histories     
+git push -u origin main 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
+npm run build
